@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+   <head>
+      <title>Filter
+      </title>
+      <title>API Example
+      </title>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+      <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+      <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+      <script src="http://brillio-tableau.southindia.cloudapp.azure.com/javascripts/api/tableau-2.min.js"></script>
+      <style>
+        .row{
+width:100%;
+display:flex;
+}
+.col-1{
+width:8.33%
+}
+.col-2{
+width:16.66%
+}
+
+.col-3{
+width:25%
+}
+
+.col-4{
+width:33.33%
+}
+
+.col-5{
+width:41.66%
+}
+
+.col-6{
+width:50%
+}
+
+.col-7{
+width:58.33%
+}
+
+.col-8{
+width:66.66%
+}
+
+.col-9{
+width:75%
+}
+
+.col-10{
+  width:83.33%
+}
+
+.col-11{
+width:91.66%
+}
+.col-12{
+  width:100%
+}
+
+
+input[type=text], select {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+button {
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: 1px red;
+    cursor:pointer;
+    overflow: hidden;
+    outline:none;
+    border-radius: 50%;
+    border: 1px solid black;
+}
+
+.pulsating-circle{
+  display: none;
+}
+#controls{
+  display: none;
+}
+*{
+margin:0;
+padding:0;
+}
+
+
+
+.pulsating-circle {
+  position: absolute;
+  transform: translateX(-50%) translateY(-50%);
+  width: 15px;
+  height: 15px;
+}
+.pulsating-circle:before {
+    content: '';
+    position: relative;
+    display: block;
+    width: 300%;
+    height: 300%;
+    box-sizing: border-box;
+    margin-left: -100%;
+    margin-top: -100%;
+    border-radius: 45px;
+    background-color: black;
+    animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  }
+  
+.pulsating-circle:after {
+    content: '';
+    position: absolute;
+    left: 0; 
+    top: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: red;
+    border-radius: 15px;
+    box-shadow: 0 0 8px rgba(0,0,0,.3);
+    animation: pulse-dot 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) -.4s infinite;
+  }
+
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(.33);
+  }
+  80%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(.8);
+  }
+  50% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(.8);
+  }
+}
+      </style>
+      <script type="text/javascript">
+         var responseTobeSpoken;
+         var geovalue = [];
+         //var accessToken = "e6cd42f4dbba44e990325be56bfffefd";
+                   var accessToken = "a761f45b5d13448d92c9570161355ee3";
+
+         var baseUrl = "https://api.api.ai/v1/";
+         var filtervalue = [];
+         var filter;
+         $(document).ready(function() {
+           $("#input").keypress(function(event) {
+             if (event.which == 13) {
+               event.preventDefault();
+               send();
+             }
+           }
+                               );
+           $("#rec").click(function(event) {
+             switchRecognition();
+           }
+                          );
+         }
+                          );
+         var recognition;
+         function startRecognition() {
+           recognition = new webkitSpeechRecognition();
+           recognition.onstart = function(event) {
+             updateRec();
+           };
+           recognition.onresult = function(event) {
+             var text = "";
+             for (var i = event.resultIndex; i < event.results.length; ++i) {
+               text += event.results[i][0].transcript;
+             }
+             setInput(text);
+             stopRecognition();
+           };
+           recognition.onend = function() {
+             stopRecognition();
+           };
+           recognition.lang = "en-US";
+           recognition.start();
+         }
+         function stopRecognition() {
+           if (recognition) {
+             recognition.stop();
+             recognition = null;
+           }
+           updateRec();
+         }
+         function switchRecognition() {
+           if (recognition) {
+             stopRecognition();
+           }
+           else {
+             startRecognition();
+           }
+         }
+         function setInput(text) {
+           $("#input").val(text);
+           send();
+         }
+         function updateRec() {
+           $("#rec").text(recognition ? "mic" : "mic_none");
+           $("#speak_text").text(recognition ? "Stop" : "Speak");
+           if(recognition){
+             $("#rec").css("color", "red");
+             $("#rec").css("border", "1px solid red");
+             $(".pulsating-circle").css("display", "block");
+           }
+           else
+           {
+             $("#rec").css("color", "black");
+             $("#rec").css("border", "1px solid black");
+              $(".pulsating-circle").css("display", "none");
+           }
+         }
+         function send() {
+           var text = $("#input").val();
+           $.ajax({
+             type: "POST",
+             url: baseUrl + "query?v=20150910",
+             contentType: "application/json; charset=utf-8",
+             dataType: "json",
+             headers: {
+               "Authorization": "Bearer " + accessToken
+             }
+             ,
+             data: JSON.stringify({
+               query: text, lang: "en", sessionId: "somerandomthing" }
+                                 ),
+             success: function(data) {
+               //geovalue = data.result.parameters.number;
+               if(data.result.parameters.State_US){
+                 filter = "Geo State";
+                 filtervalue  = data.result.parameters.State_US;
+                 console.log("filter value is " , filter);
+                 for (i=0;i<filtervalue.length; i++){
+                   geovalue[i] = filtervalue[i];
+                 }
+                 dd(geovalue,filter);
+               }
+               if(data.result.parameters.Location_US){
+                 filter = "Geo";
+                 filtervalue  = data.result.parameters.Location_US;
+                 console.log("filter value is " , filter);
+                 for (i=0;i<filtervalue.length; i++){
+                   geovalue[i] = filtervalue[i];
+                 }
+                 dd(geovalue,filter);
+               }
+               if(data.result.parameters.Group){
+                 filter = "Search Intent Group";
+                 filtervalue  = data.result.parameters.Group;
+                 console.log("filter value is " , filter);
+                 for (i=0;i<filtervalue.length; i++){
+                   geovalue[i] = filtervalue[i];
+                 }
+                 dd(geovalue,filter);
+               }
+               responseTobeSpoken = data.result.fulfillment.speech;
+               //alert(geovalue, responseTobeSpoken);
+               console.log(responseTobeSpoken, geovalue);
+               setResponse(responseTobeSpoken);
+             }
+             ,
+             error: function() {
+               setResponse("Internal Server Error");
+             }
+           }
+                 );
+           setResponse("Loading...");
+         }
+         function setResponse(val) {
+           $("#response").text(val);
+           var a = $("#response").text(val);
+           var msg = new SpeechSynthesisUtterance(responseTobeSpoken);
+           window.speechSynthesis.speak(msg);
+           //alert(geovalue);
+           setTimeout(dd(geovalue,filter), 3000);
+         }
+         var viz;
+         function initViz() {
+           var containerDiv = document.getElementById("vizContainer"),
+               //  url = "http://brillio-tableau.southindia.cloudapp.azure.com/t/COE/views/Move_SEODashboard_0/CTRAnalysis?",
+               url = "http://brillio-tableau.southindia.cloudapp.azure.com/t/COE/views/MOVESEOnew/SearchAnalytics?",
+               options = {
+                 "Search Intent Group" : "",
+                 "Geo" : "",
+                 "Geo State" : "",
+                 hideTabs: true
+               };
+           viz = new tableau.Viz(containerDiv, url, options);
+          //  $('#controls').css('display','block');
+         }
+         function dd(geovalue,filter) {
+           //alert("I am here" , filter)
+           var dashboard, mapSheet, graphSheet;
+           viz.getWorkbook().activateSheetAsync("Search Analytics")
+             .then(function (sheet) {
+             dashboard = sheet;
+             mapSheet = dashboard.getWorksheets().get("Chart");
+             if (geovalue === "dd") {
+               console.log("inside if");
+               return mapSheet.clearFilterAsync(filter);
+             }
+             else {
+               console.log("inside else");
+               console.log(geovalue);
+               console.log("filter value inside dd function is " , filter);
+               /*          $( document ).ready(function() {
+           window.location.reload(); }); */
+               return mapSheet.applyFilterAsync(filter, geovalue, tableau.FilterUpdateType.REPLACE);
+             }
+           }
+                  )
+           //    .then(function () {
+           //      
+           //            return mapSheet.applyFilterAsync("Search Intent Group", "realtor", tableau.FilterUpdateType.REPLACE);
+           //  })
+           return;
+         }
+         function loadImage() {
+              document.getElementById("controls").style.display="block";
+          }
+      </script>
+
+      
+      <div id="controls">
+         <!--Geo: <select id="changeYear" onchange="dd(value);">
+            <option value="dd">All</option>
+            <option value="Geo">Geo</option>
+            <option value="Search Intent Group">Search Intent Group</option>
+            <option value="6010">6010</option> 
+            <option value="Hewlett , NY">Hewlett,NY</option> 
+            <option value="29-Palms , CA">29-Palms,CA</option> 
+            <option value="3360-Travis-Pointe , MI">3360-Travis-Pointe,MI</option>
+            <option value="Alameda-Isles , Englewood , FL">Alameda-Isles,Englewood,FL</option> 
+            </select>-->
+         <!--<input id="input" type="text"> 
+         <button id="rec" class="material-icons" style="font-size:100px;color:black">mic_none</button>
+         <div id="speak_text">Speak</div>-->
+          <div class="row" style="background:#36c778;">
+  <div class="col-1" style="margin:2px;padding:2px;color:white;text-align:center">
+  <button id="rec" class="material-icons" style="font-size:50px;color:black">mic_none</button>
+</div>
+ 
+  <div class="col-11" style="margin:4px;padding:2px;text-align:center"><input id="input" type="text"> </div>
+      </div>
+      <div class="row" style="background:#36c778;"> <div class="col-1" style="margin:2px;padding-top:2px;color:#191970;text-align:center"><div id="speak_text">Speak</div></div>
+      <div class="col-11" style="margin:2px;padding-top:6px;"><div class="pulsating-circle"></div></div>
+      </div>
+      </div>
+      <div id="vizContainer" style="width:1024px; height:700px;"></div>
+      <br>Response<br>
+         <textarea id="response" cols="40" rows="20"></textarea>
+      <!--<button type="button" onclick="changeParam(2)" >Profit
+      </button>    -->
+   </head>
+   <body onload="initViz();loadImage()">
+   </body>
+</html>
