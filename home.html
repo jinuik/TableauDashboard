@@ -251,6 +251,7 @@ padding:0;
                    geovalue[i] = filtervalue[i];
                  }
                  dd(geovalue,filter);
+                   // geovalue = [];
                }
                if(data.result.parameters.Location_US){
                  filter = "Geo";
@@ -260,6 +261,7 @@ padding:0;
                    geovalue[i] = filtervalue[i];
                  }
                  dd(geovalue,filter);
+                  // geovalue = [];
                }
                if(data.result.parameters.Group){
                  filter = "Search Intent Group";
@@ -269,6 +271,7 @@ padding:0;
                    geovalue[i] = filtervalue[i];
                  }
                  dd(geovalue,filter);
+                 //  geovalue = [];
                }
                responseTobeSpoken = data.result.fulfillment.speech;
                //alert(geovalue, responseTobeSpoken);
@@ -323,6 +326,7 @@ padding:0;
                /*          $( document ).ready(function() {
            window.location.reload(); }); */
                return mapSheet.applyFilterAsync(filter, geovalue, tableau.FilterUpdateType.REPLACE);
+                
              }
            }
                   )
@@ -330,6 +334,7 @@ padding:0;
            //      
            //            return mapSheet.applyFilterAsync("Search Intent Group", "realtor", tableau.FilterUpdateType.REPLACE);
            //  })
+             
            return;
          }
          function loadImage() {
